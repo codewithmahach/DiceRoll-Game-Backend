@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment variables (CRITICAL: Never commit secrets or private keys)
+.env
+.env.local
+.env.*.local
+
+# Database local storage state
+data/*.json
+!data/.gitkeep
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

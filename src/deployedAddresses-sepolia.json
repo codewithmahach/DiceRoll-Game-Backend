@@ -1,0 +1,25 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "multiplayerDiceRoll": "0x80812a007eE252D337c8b131a7BBCAD25823aB54",
+  "multiplayerDiceRollTxHash": "0x929077410d4d107b7eb90f600c28cce9489c5192e3572bc381e3e1e3267a0a73",
+  "usdtAddress": "0xA72fB7DF8Cf3107Ccab112b35e0677Ff338A3FE2",
+  "usdtTxHash": null,
+  "isMockUSDT": false,
+  "vrfCoordinator": "0x9DdfaCa8183c41ad55329BdeeD9F6A8d53168B1B",
+  "vrfKeyHash": "0x787d74caea10b2b357790d5b5247c2f63d1d91572a9846f780606e4d953677ae",
+  "vrfSubscriptionId": "90984467498597341241875774508230780212557940660591744321291645331401633476048",
+  "treasury": "0x041F913a616362e67CdcE5d476F6BDeC7776f309",
+  "deploymentBlock": 11785300,
+  "platformFeeBps": 200,
+  "maxPlatformFeeBps": 1000,
+  "deployedAt": "2026-09-26T09:19:01.693Z",
+  "previousDeployments": [
+    {
+      "multiplayerDiceRoll": "0x9CafbD58393663a6c104BBCc630a280081086DbF",
+      "deploymentBlock": 11781342,
+      "deployedAt": "2026-09-25T19:36:02.359Z",
+      "multiplayerDiceRollTxHash": "0x957a43811a5a3c53ef8ee5077359c750b1a55eaf8dfe250a753b2369810b0add"
+    }
+  ]
+}
