@@ -38,9 +38,21 @@ if (process.env.START_BLOCK !== undefined && process.env.START_BLOCK !== "") {
 // Strict boolean parsing: Must be explicitly "true", defaults to false
 const enableDevKeeper = process.env.ENABLE_DEV_KEEPER === "true";
 
+// Validate & sanitize RPC URL
+let rawRpcUrl = (process.env.RPC_URL || process.env.SEPOLIA_RPC_URL || "").trim();
+let validRpcUrl = "";
+if (rawRpcUrl.startsWith("http://") || rawRpcUrl.startsWith("https://")) {
+  validRpcUrl = rawRpcUrl;
+} else {
+  if (rawRpcUrl) {
+    console.warn(`[Config] WARNING: RPC_URL environment variable '${rawRpcUrl}' is not a valid HTTP/HTTPS URL. Falling back to default.`);
+  }
+  validRpcUrl = (targetChainId === 11155111 ? "https://ethereum-sepolia-rpc.publicnode.com" : "http://127.0.0.1:8545");
+}
+
 module.exports = {
   port: Number(process.env.PORT || 5001),
-  rpcUrl: process.env.RPC_URL || process.env.SEPOLIA_RPC_URL || (targetChainId === 11155111 ? "https://ethereum-sepolia-rpc.publicnode.com" : "http://127.0.0.1:8545"),
+  rpcUrl: validRpcUrl,
   chainId: targetChainId,
   contractAddress: process.env.CONTRACT_ADDRESS || networkDeployed.multiplayerDiceRoll || "",
   usdtAddress: process.env.USDT_ADDRESS || networkDeployed.mockUSDT || networkDeployed.usdtAddress || "",

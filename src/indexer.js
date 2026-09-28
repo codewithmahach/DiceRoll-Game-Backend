@@ -19,7 +19,8 @@ class Indexer {
     }
 
     try {
-      this.provider = new ethers.JsonRpcProvider(config.rpcUrl);
+      const network = ethers.Network.from(config.chainId || 11155111);
+      this.provider = new ethers.JsonRpcProvider(config.rpcUrl, network, { staticNetwork: true });
       const abiPath = path.join(__dirname, "MultiplayerDiceRoll.json");
       if (!fs.existsSync(abiPath)) {
         console.warn("[Indexer] MultiplayerDiceRoll.json ABI not found yet.");

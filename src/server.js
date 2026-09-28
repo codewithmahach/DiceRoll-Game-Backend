@@ -124,6 +124,14 @@ app.get("/api/leaderboard", (req, res) => {
   });
 });
 
+// Process-level crash prevention for RPC glitches
+process.on("unhandledRejection", (reason) => {
+  console.warn("[Process] Handled unhandledRejection:", reason && (reason.message || reason));
+});
+process.on("uncaughtException", (err) => {
+  console.error("[Process] Handled uncaughtException:", err && (err.message || err));
+});
+
 // Start Server & Background Services
 app.listen(config.port, () => {
   console.log(`[API Server] Running on http://localhost:${config.port}`);
