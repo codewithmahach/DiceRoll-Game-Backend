@@ -22,8 +22,22 @@ if (fs.existsSync(deployedPath)) {
   }
 }
 
-const targetChainId = Number(process.env.CHAIN_ID || deployed.chainId || 11155111);
-const networkDeployed = (deployed.networks && deployed.networks[targetChainId]) ? deployed.networks[targetChainId] : deployed;
+// Default targetChainId to Sepolia (11155111) for live cloud deployments unless explicitly overridden
+const targetChainId = Number(process.env.CHAIN_ID || 11155111);
+let networkDeployed = (deployed.networks && deployed.networks[targetChainId])
+  ? { ...deployed.networks[targetChainId] }
+  : (deployed.chainId === targetChainId ? { ...deployed } : (deployed.networks?.[11155111] ? { ...deployed.networks[11155111] } : { ...deployed }));
+
+// Overlay deployedAddresses-sepolia.json if targeting Sepolia
+const sepoliaPath = path.join(__dirname, "deployedAddresses-sepolia.json");
+if (fs.existsSync(sepoliaPath) && targetChainId === 11155111) {
+  try {
+    const sepoliaData = JSON.parse(fs.readFileSync(sepoliaPath, "utf-8"));
+    networkDeployed = { ...networkDeployed, ...sepoliaData };
+  } catch (err) {
+    console.warn("[Config] Could not read deployedAddresses-sepolia.json");
+  }
+}
 
 // Calculate startBlock: env START_BLOCK > deployed.startBlock > (0 for localhost, null for Sepolia)
 let parsedStartBlock = null;
