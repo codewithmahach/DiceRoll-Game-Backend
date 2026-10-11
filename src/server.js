@@ -45,8 +45,37 @@ app.get("/api/rounds", (req, res) => {
   });
 });
 
-app.get("/api/rounds/:id", (req, res) => {
-  const round = db.getRound(req.params.id);
+app.get("/api/rounds/:id", async (req, res) => {
+  let round = db.getRound(req.params.id);
+  if (!round && indexer.contract) {
+    try {
+      const r = await indexer.contract.getRound(req.params.id);
+      if (r && Number(r.roundId) > 0) {
+        round = {
+          roundId: Number(r.roundId),
+          paymentToken: r.paymentToken,
+          entryAmount: r.entryAmount.toString(),
+          minPlayers: Number(r.minPlayers),
+          maxPlayers: Number(r.maxPlayers),
+          playerCount: Number(r.playerCount),
+          revealedCount: Number(r.revealedCount),
+          rollCount: Number(r.rollCount),
+          totalDeposits: r.totalDeposits.toString(),
+          state: Number(r.state),
+          winningNumber: Number(r.winningNumber),
+          winnerCount: Number(r.winnerCount),
+          winnerReward: r.winnerReward.toString(),
+          remainder: r.remainder.toString(),
+          joinDeadline: Number(r.joinDeadline),
+          revealDeadline: Number(r.revealDeadline),
+          vrfRequestId: r.vrfRequestId.toString()
+        };
+      }
+    } catch (e) {
+      console.warn(`[Backend] Contract fallback for round #${req.params.id}:`, e.message);
+    }
+  }
+
   if (!round) {
     return res.status(404).json({ success: false, error: "Round not found" });
   }
