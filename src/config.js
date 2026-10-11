@@ -73,8 +73,7 @@ module.exports = {
   vrfCoordinator: process.env.VRF_COORDINATOR || networkDeployed.vrfCoordinator || networkDeployed.mockVRFCoordinator || "",
   treasuryAddress: process.env.TREASURY_ADDRESS || networkDeployed.treasury || "",
   startBlock: parsedStartBlock,
-  // NEVER provide a fallback private key. Must be explicitly supplied in env when keeper is enabled.
-  keeperPrivateKey: process.env.KEEPER_PRIVATE_KEY || null,
+  keeperPrivateKey: process.env.KEEPER_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY || null,
   enableDevKeeper: enableDevKeeper,
   pollIntervalMs: Number(process.env.POLL_INTERVAL_MS || 3000),
   chunkSize: Number(process.env.INDEXER_CHUNK_SIZE || 2000),

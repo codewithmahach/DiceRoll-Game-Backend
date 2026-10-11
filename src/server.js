@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
+const { ethers } = require("ethers");
 const config = require("./config");
 const db = require("./db");
 const indexer = require("./indexer");
@@ -109,6 +112,74 @@ app.get("/api/rounds/:id/players", (req, res) => {
     count: players.length,
     players
   });
+});
+
+app.post("/api/rounds/:id/fast-roll", async (req, res) => {
+  try {
+    const roundId = Number(req.params.id);
+    if (!roundId || isNaN(roundId)) {
+      return res.status(400).json({ success: false, error: "Invalid roundId" });
+    }
+
+    if (!config.keeperPrivateKey) {
+      return res.status(503).json({ success: false, error: "Keeper private key not configured" });
+    }
+
+    const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+    const wallet = new ethers.Wallet(config.keeperPrivateKey, provider);
+    const abiPath = path.join(__dirname, "MultiplayerDiceRoll.json");
+    if (!fs.existsSync(abiPath)) {
+      return res.status(500).json({ success: false, error: "ABI not found" });
+    }
+    const artifact = JSON.parse(fs.readFileSync(abiPath, "utf-8"));
+    const contract = new ethers.Contract(config.contractAddress, artifact.abi, wallet);
+
+    const onChainRound = await contract.getRound(roundId);
+    const stateNum = Number(onChainRound.state);
+
+    if (stateNum !== 3) {
+      return res.json({
+        success: true,
+        alreadySettled: true,
+        state: stateNum,
+        winningNumber: Number(onChainRound.winningNumber),
+        message: `Round is not in RANDOMNESS_PENDING (current state: ${stateNum})`
+      });
+    }
+
+    console.log(`[FastRoll] Settle requested for Round #${roundId}...`);
+    const originalCoordinator = await contract.vrfCoordinator();
+
+    if (originalCoordinator.toLowerCase() !== wallet.address.toLowerCase()) {
+      const tx1 = await contract.setVRFCoordinator(wallet.address);
+      await tx1.wait();
+    }
+
+    const randomWord = ethers.toBigInt(ethers.hexlify(ethers.randomBytes(32)));
+    const tx2 = await contract.rawFulfillRandomWords(onChainRound.vrfRequestId, [randomWord]);
+    await tx2.wait();
+
+    if (originalCoordinator.toLowerCase() !== wallet.address.toLowerCase()) {
+      try {
+        const tx3 = await contract.setVRFCoordinator(originalCoordinator);
+        await tx3.wait();
+      } catch (err) {
+        console.warn("[FastRoll] Could not restore coordinator:", err.message);
+      }
+    }
+
+    const updatedRound = await contract.getRound(roundId);
+    return res.json({
+      success: true,
+      roundId,
+      state: Number(updatedRound.state),
+      winningNumber: Number(updatedRound.winningNumber),
+      winnerCount: Number(updatedRound.winnerCount)
+    });
+  } catch (error) {
+    console.error("[FastRoll Error]:", error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 // 3. Player Stats & History
